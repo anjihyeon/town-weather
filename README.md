@@ -1,6 +1,6 @@
 # town-weather
 
-Vue.js로 만든 날씨 웹앱어플리케이션
+Vue.js로 만든 날씨 웹 어플리케이션
 
 ## Build Setup
 
