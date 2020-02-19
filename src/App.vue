@@ -1,7 +1,7 @@
 <template>
   <div id="app">
     <weatherHeader></weatherHeader>
-    <weatherValue router-link to="/api"></weatherValue>
+    <weatherValue></weatherValue>
   </div>
 </template>
 <script>
