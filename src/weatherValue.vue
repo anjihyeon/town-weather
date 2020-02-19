@@ -11,7 +11,7 @@
       bullets-outside
       :slide-content-outside="contentPosition"
     >
-      <!--동네예보api-->
+      <!--초단기실황api-->
       <VueperSlide
         :key="1"
         style="width: 330px; height:
@@ -75,11 +75,11 @@
             <!-- <div id="div1"></div> -->
             <div id="div3">
               <section>
-                <img src="./icon/dntks.png" width="50px" height="50px" />
+                <img src="./icon/dntks.png" width="45px" height="45px" />
                 {{ R06 }}
-                <img src="./icon/rkdtnfid.png" width="50px" height="50px" />
+                <img src="./icon/rkdtnfid.png" width="45px" height="45px" />
                 {{ REH }}
-                <img src="./icon/vndthr.png" width="50px" height="50px" />
+                <img src="./icon/vndthr.png" width="45px" height="45px" />
                 {{ WSD }}
               </section>
             </div>
@@ -111,31 +111,20 @@ export default {
   },
   data() {
     return {
-      // weatherData: weatherData,
-      sliderNum: 2,
       position: null,
       x: 0.0,
       y: 0.0,
       // address: null,
       info: null,
-      info2: null,
-      T1H: null, //(초단기실황) 1시간 기온 C
-      RN1: null, //(초단기실황) 1시간 강수량 mm
-      R06: null, //(동네예보)6시간 강수량 mm
-      T3H: null, //(동네예보)3시간 기온 C
-      TMN: null, //(동네예보)아침 최저기온 C
-      TMX: null, //(동네예보)낮 최고기온 C
+      //동네예보 api
+      R06: null, // 6시간 강수량 mm
       REH: null, //습도 %
+      T3H: null, // 3시간 기온 C
+      TMN: null, //아침 최저기온 C
+      TMX: null, //낮 최고기온 C
       PTY: null, //강수형태 코드값 없음(0)/비(1)/비/눈(2)/눈(3)/소나기(4)
       SKY: null, //하늘상태 코드값 맑음(1)/구름많음(3)/흐림(4)
-      WSD: null, //풍속 m/s
-      //초단기예보
-      T1H2: null, //1시간 기온 C
-      RN12: null, //1시간 강수량 mm
-      REH2: null, //습도2 %
-      SKY2: null, // 하늘상태2
-      PTY2: null, //강수상태2
-      WSD2: null //풍속2 m/s
+      WSD: null //풍속 m/s
     };
   },
   methods: {
@@ -150,21 +139,21 @@ export default {
           self.x = parseFloat(self.x).toFixed(0);
           self.y = parseFloat(self.y).toFixed(0);
           console.log(self.x + " " + self.y);
-          //리버스 지오코딩api
-          // var url1 =
-          //   "http://apis.vworld.kr/coord2new.do?x=" +
-          //   self.x +
-          //   "&y=" +
-          //   self.y +
-          //   "&output=xml&epsg=epsg:4326&apiKey=0770FD5D-CDD0-34DF-A0BF-83B8BBD6B916	";
-          // axios.get(url1).then(res => {
+          //리버스 지오코딩 API
+          // var url =
+          //   "http://api.vworld.kr/req/address?service=address&request=getAddress&version=2.0&crs=epsg:4326&point=" +
+          //   x2 +
+          //   "," +
+          //   y2 +
+          //   "&format=json&type=parcel&zipcode=false&simple=true&key=0770FD5D-CDD0-34DF-A0BF-83B8BBD6B916";
+          // axios.get(url).then(res => {
           //   self.address = res.data;
 
           //   console.log(self.address);
           // });
-          //초단기 실황
+          //초단기실황 API
           var url1 =
-            "http://apis.data.go.kr/1360000/VilageFcstInfoService/getUltraSrtNcst?serviceKey=Td3kPWtrJnZxn1TkpcPhyrZj%2BdB%2FpRl1AKuvGw1mUHS63Lp4Dga90IvSn8SEsax%2F9QvvBmXfCE5TfOaaw0lCMA%3D%3D&numOfRows=10&pageNo=1&dataType=JSON&base_date=" +
+            "http://apis.data.go.kr/1360000/VilageFcstInfoService/getVilageFcst?serviceKey=Td3kPWtrJnZxn1TkpcPhyrZj%2BdB%2FpRl1AKuvGw1mUHS63Lp4Dga90IvSn8SEsax%2F9QvvBmXfCE5TfOaaw0lCMA%3D%3D&numOfRows=14&pageNo=1&dataType=JSON&base_date=" +
             moment().format("YYYYMMDD") +
             "&base_time=" +
             moment().format("hhmm") +
@@ -182,13 +171,8 @@ export default {
             console.log(numOfRows);
 
             for (var i = 1; i < numOfRows; i++) {
-              if (self.info.response["body"].items.item[i].category === "R06") {
-                self.R06 =
-                  self.info.response.body.items.item[i].fcstValue + "mm";
-              }
               if (self.info.response["body"].items.item[i].category === "PTY") {
                 self.PTY = self.info.response["body"].items.item[i].fcstValue;
-                // console.log(self.PTY);
               }
               if (self.info.response["body"].items.item[i].category === "REH") {
                 self.REH =
@@ -199,6 +183,7 @@ export default {
                 self.SKY = self.info.response["body"].items.item[i].fcstValue;
                 console.log(self.SKY);
               }
+
               if (self.info.response["body"].items.item[i].category === "T3H") {
                 self.T3H =
                   self.info.response["body"].items.item[i].fcstValue + "ºC";
@@ -211,72 +196,16 @@ export default {
                 self.TMX =
                   self.info.response["body"].items.item[i].fcstValue + "ºC";
               }
+              if (self.info.response["body"].items.item[i].category === "R06") {
+                self.R06 =
+                  self.info.response["body"].items.item[i].fcstValue + "mm";
+              }
               if (self.info.response["body"].items.item[i].category === "WSD") {
                 self.WSD =
                   self.info.response["body"].items.item[i].fcstValue + "m/s";
               }
             }
           });
-          //초단기예보
-          // var url2 =
-          //   "http://apis.data.go.kr/1360000/VilageFcstInfoService/getUltraSrtFcst?serviceKey=Td3kPWtrJnZxn1TkpcPhyrZj%2BdB%2FpRl1AKuvGw1mUHS63Lp4Dga90IvSn8SEsax%2F9QvvBmXfCE5TfOaaw0lCMA%3D%3D&numOfRows=10&pageNo=1&dataType=JSON&base_date=" +
-          //   moment().format("YYYYMMDD") +
-          //   "&base_time=" +
-          //   moment().format("hhmm") +
-          //   "&nx=" +
-          //   self.x +
-          //   "&ny=" +
-          //   self.y;
-          // var api_url2 = url2;
-          // axios.get(api_url2).then(result2 => {
-          //   self.info2 = JSON.parse(JSON.stringify(result2.data));
-          //   console.log(self.info2);
-          //   //weatherData test
-          //   var numOfRows2 = self.info2.response["body"].numOfRows;
-          //   console.log(numOfRows2);
-
-          //   for (var i = 1; i < numOfRows2; i++) {
-          //     if (self.info.response["body"].items.item[i].category === "RN1") {
-          //       self.RN12 =
-          //         self.info.response.body.items.item[i].fcstValue + "mm";
-          //     }
-          //     if (
-          //       self.info2.response["body"].items.item[i].category === "T1H"
-          //     ) {
-          //       self.T1H2 =
-          //         self.info2.response.body.items.item[i].fcstValue + "ºC";
-          //     }
-          //     if (
-          //       self.info2.response["body"].items.item[i].category === "SKY2"
-          //     ) {
-          //       self.SKY2 = self.info2.response["body"].items.item[i].fcstValue;
-          //       console.log(self.SKY2);
-          //     }
-          //     if (
-          //       self.info2.response["body"].items.item[i].category === "REH2"
-          //     ) {
-          //       self.REH2 =
-          //         self.info2.response["body"].items.item[i].fcstValue + "%";
-          //     }
-          //     if (
-          //       self.info2.response["body"].items.item[i].category === "PTY2"
-          //     ) {
-          //       self.PTY2 = self.info2.response["body"].items.item[i].fcstValue;
-          //     }
-          //     if (
-          //       self.info2.response["body"].items.item[i].category === "SKY"
-          //     ) {
-          //       self.SKY2 = self.info2.response["body"].items.item[i].fcstValue;
-          //       console.log(self.SKY);
-          //     }
-          //     if (
-          //       self.info2.response["body"].items.item[i].category === "WSD2"
-          //     ) {
-          //       self.WSD2 =
-          //         self.info2.response["body"].items.item[i].fcstValue + "m/s";
-          //     }
-          //   }
-          // });
         });
       } else {
         console.log("위치값을 받지 못함.");
@@ -303,7 +232,7 @@ export default {
 #div2 {
   height: 100%;
   width: 100%;
-  font-size: 30px;
+  font-size: 25px;
   color: white;
   display: flex;
   flex-direction: row;
