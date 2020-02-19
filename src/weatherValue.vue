@@ -1,12 +1,8 @@
 <template>
   <div>
-    <span type="button" id="btn" @click="getLocation">
-      <img src="./icon/gps.png" width="50px" height="50px" />
-    </span>
-
     <VueperSlides
       class="no-shadow"
-      fixed-height="440px"
+      fixed-height="500px"
       :arrows="false"
       bullets-outside
       :slide-content-outside="contentPosition"
@@ -19,6 +15,12 @@
       >
         <template v-slot:content>
           <div class="vueperslide__content-wrapper">
+            <div id="div1">
+              <div>{{ address }}</div>
+              <span type="button" id="btn" @click="getLocation">
+                <img src="./icon/gps.png" width="50px" height="50px" />
+              </span>
+            </div>
             <div id="div2">
               <!--구름형태:1(맑음)-->
               <img
@@ -99,6 +101,7 @@
 <script>
 import moment from "moment";
 import axios from "axios";
+import VueResource from "vue-resource";
 import { VueperSlides, VueperSlide } from "vueperslides";
 import "vueperslides/dist/vueperslides.css";
 
@@ -111,7 +114,12 @@ export default {
   },
   data() {
     return {
+      address: null,
       position: null,
+      dust: null,
+      tm_location: null,
+      tm_x: 0.0,
+      tm_y: 0.0,
       x: 0.0,
       y: 0.0,
       // address: null,
@@ -136,22 +144,43 @@ export default {
           self.position = position.coords;
           self.x = position.coords.latitude;
           self.y = position.coords.longitude;
+          var xn = position.coords.latitude;
+          var yn = position.coords.longitude;
           self.x = parseFloat(self.x).toFixed(0);
           self.y = parseFloat(self.y).toFixed(0);
           console.log(self.x + " " + self.y);
-          //리버스 지오코딩 API
-          // var url =
-          //   "http://api.vworld.kr/req/address?service=address&request=getAddress&version=2.0&crs=epsg:4326&point=" +
-          //   x2 +
-          //   "," +
-          //   y2 +
-          //   "&format=json&type=parcel&zipcode=false&simple=true&key=0770FD5D-CDD0-34DF-A0BF-83B8BBD6B916";
-          // axios.get(url).then(res => {
-          //   self.address = res.data;
+          console.log(xn + " " + yn);
 
-          //   console.log(self.address);
-          // });
-          //초단기실황 API
+          // 좌표->주소 카카오톡 REST API
+          var url =
+            "https://dapi.kakao.com/v2/local/geo/coord2address.json?x=" +
+            yn +
+            "&y=" +
+            xn +
+            "&input_coord=WGS84";
+          var appKey = "e210e19417b24807d3716f4e5a0bf4a9";
+          var config = {
+            headers: {
+              Authorization: "KakaoAK " + appKey,
+              "Access-Control-Request-Method": "GET"
+            }
+          };
+
+          self.$http
+            .get(url, config)
+            .then(res => {
+              self.address = res.data;
+              console.log(self.address);
+
+              self.address =
+                self.address.documents[0].address.region_3depth_name;
+              console.log(self.address);
+            })
+            .catch(error => {
+              console.log(error);
+            });
+
+          //동네예보 API
           var url1 =
             "http://apis.data.go.kr/1360000/VilageFcstInfoService/getVilageFcst?serviceKey=Td3kPWtrJnZxn1TkpcPhyrZj%2BdB%2FpRl1AKuvGw1mUHS63Lp4Dga90IvSn8SEsax%2F9QvvBmXfCE5TfOaaw0lCMA%3D%3D&numOfRows=14&pageNo=1&dataType=JSON&base_date=" +
             moment().format("YYYYMMDD") +
@@ -206,6 +235,50 @@ export default {
               }
             }
           });
+          // wgs좌표-> tm좌표 카카오톡 REST API
+          var url =
+            "https://dapi.kakao.com/v2/local/geo/transcoord.json?x=" +
+            yn +
+            "&y=" +
+            xn +
+            "&input_coord=WGS84&output_coord=TM";
+          var appKey = "e210e19417b24807d3716f4e5a0bf4a9";
+          var config = {
+            headers: {
+              Authorization: "KakaoAK " + appKey,
+              "Access-Control-Request-Method": "GET"
+            }
+          };
+
+          self.$http
+            .get(url, config)
+            .then(res => {
+              self.tm_location = res.data;
+              console.log(self.tm_location);
+
+              self.tm_x = self.tm_location.documents[0].x;
+              self.tm_y = self.tm_location.documents[0].y;
+              console.log(self.tm_x + " " + self.tm_y);
+            })
+            .catch(error => {
+              console.log(error);
+            });
+          //tm좌표 미세먼지 API
+          var url3 =
+            "http://openapi.airkorea.or.kr/openapi/services/rest/MsrstnInfoInqireSvc/getNearbyMsrstnList?tmX=" +
+            self.tm_x +
+            "&tmY=" +
+            self.y +
+            "&ServiceKey=JRWTmtB5qI3WJcvA7HrFcBrSWgA6OKvW6HVK5YN1uTvodOeEo2noxhbEsS020kBYMYHDEBWqTFITnB0u88vtnw%3D%3D";
+          axios
+            .get(url3)
+            .then(result => {
+              self.dust = result.data;
+              console.log(self.dust);
+            })
+            .catch(error => {
+              console.log(error);
+            });
         });
       } else {
         console.log("위치값을 받지 못함.");
@@ -218,11 +291,19 @@ export default {
 </script>
 
 <style scoped>
+#app2 {
+  padding: 30px 0 0 0;
+}
 .vueperslides--fixed-height {
   height: 550px;
 }
-#btn {
-  padding: 0px 0px 0px 265px;
+#div1 {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-evenly;
+  color: white;
+  font-size: 25px;
+  padding: 0px 0px 0px 150px;
 }
 #div3 {
   font-size: 25px;
@@ -239,12 +320,6 @@ export default {
   justify-content: center;
   padding-top: 50px;
 }
-#div1 {
-  margin: 20px;
-  height: 3px;
-  width: 87%;
-  background-color: white;
-}
 #rldhs {
   font-size: 40px;
   color: white;
@@ -254,7 +329,7 @@ img {
 }
 section {
   width: 100%;
-  padding-top: 130px;
+  padding-top: 110px;
 
   display: flex;
   flex-direction: row;
