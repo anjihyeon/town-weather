@@ -22,7 +22,7 @@ npm run dev
 npm run build
 ```
 ## 참고 
-![gpsweatherMain](https://user-images.githubusercontent.com/53885622/74705958-ef15bb80-5258-11ea-9de3-e4828a162e8e.png)
+![gpsweatherMain](https://user-images.githubusercontent.com/53885622/74860476-099c8180-538c-11ea-9a4c-1d73f3349d6f.png)
 
 
 For detailed explanation on how things work, consult the [docs for vue-loader](http://vuejs.github.io/vue-loader).
