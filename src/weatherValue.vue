@@ -2,22 +2,19 @@
   <div>
     <VueperSlides
       class="no-shadow"
-      fixed-height="500px"
+      fixed-height="490px"
       :arrows="false"
       bullets-outside
       :slide-content-outside="contentPosition"
     >
       <!--초단기실황api-->
-      <VueperSlide
-        :key="1"
-        style="width: 330px; height:
-      550px;"
-      >
+      <VueperSlide :key="1" style="width: 330px; height:
+      550px;">
         <template v-slot:content>
           <div class="vueperslide__content-wrapper">
             <div id="div1">
               <div>{{ address }}</div>
-              <span type="button" id="btn" @click="getLocation">
+              <span type="button" id="btn" @click="getLocation()">
                 <img src="./icon/gps.png" width="50px" height="50px" />
               </span>
             </div>
@@ -44,33 +41,13 @@
                 height="150px"
               />
               <!--강수형태:1(비)-->
-              <img
-                v-else-if="PTY === '1'"
-                src="./icon/rainy.png"
-                width="150px"
-                height="150px"
-              />
+              <img v-else-if="PTY === '1'" src="./icon/rainy.png" width="150px" height="150px" />
               <!--강수형태:2(비/눈)-->
-              <img
-                v-else-if="PTY === '2'"
-                src="./icon/snowy.png"
-                width="150px"
-                height="150px"
-              />
+              <img v-else-if="PTY === '2'" src="./icon/snowy.png" width="150px" height="150px" />
               <!--강수형태:3(눈)-->
-              <img
-                v-else-if="PTY === '3'"
-                src="./icon/snowy-1.png"
-                width="150px"
-                height="150px"
-              />
+              <img v-else-if="PTY === '3'" src="./icon/snowy-1.png" width="150px" height="150px" />
               <!--강수형태:4(소나기)-->
-              <img
-                v-else-if="PTY === '4'"
-                src="./icon/rainy-1.png"
-                width="150px"
-                height="150px"
-              />
+              <img v-else-if="PTY === '4'" src="./icon/rainy-1.png" width="150px" height="150px" />
               <!-- {{ "아침최저기온 : " + TMN }} {{ "낮최고기온 : " + TMX }} -->
             </div>
             <div id="rldhs">{{ T3H }}</div>
@@ -120,9 +97,10 @@ export default {
       tm_location: null,
       tm_x: 0.0,
       tm_y: 0.0,
+      xn: 0.0,
+      yn: 0.0,
       x: 0.0,
       y: 0.0,
-      // address: null,
       info: null,
       //동네예보 api
       R06: null, // 6시간 강수량 mm
@@ -140,29 +118,29 @@ export default {
       var self = this;
       if (navigator.geolocation) {
         console.log("위치값을 받음");
+
         navigator.geolocation.getCurrentPosition(function(position) {
           self.position = position.coords;
           self.x = position.coords.latitude;
           self.y = position.coords.longitude;
-          var xn = position.coords.latitude;
-          var yn = position.coords.longitude;
+          self.xn = position.coords.latitude;
+          self.yn = position.coords.longitude;
           self.x = parseFloat(self.x).toFixed(0);
           self.y = parseFloat(self.y).toFixed(0);
           console.log(self.x + " " + self.y);
-          console.log(xn + " " + yn);
+          console.log(self.xn + " " + self.yn);
 
           // 좌표->주소 카카오톡 REST API
           var url =
             "https://dapi.kakao.com/v2/local/geo/coord2address.json?x=" +
-            yn +
+            self.yn +
             "&y=" +
-            xn +
+            self.xn +
             "&input_coord=WGS84";
           var appKey = "e210e19417b24807d3716f4e5a0bf4a9";
           var config = {
             headers: {
-              Authorization: "KakaoAK " + appKey,
-              "Access-Control-Request-Method": "GET"
+              Authorization: "KakaoAK " + appKey
             }
           };
 
@@ -179,10 +157,9 @@ export default {
             .catch(error => {
               console.log(error);
             });
-
           //동네예보 API
           var url1 =
-            "http://apis.data.go.kr/1360000/VilageFcstInfoService/getVilageFcst?serviceKey=Td3kPWtrJnZxn1TkpcPhyrZj%2BdB%2FpRl1AKuvGw1mUHS63Lp4Dga90IvSn8SEsax%2F9QvvBmXfCE5TfOaaw0lCMA%3D%3D&numOfRows=14&pageNo=1&dataType=JSON&base_date=" +
+            "http://apis.data.go.kr/1360000/VilageFcstInfoService/getVilageFcst?serviceKey=JRWTmtB5qI3WJcvA7HrFcBrSWgA6OKvW16HVK5YNuTvodOeEo2noxhbEsS020kBYMYHDEBWqTFITnB0u88vtnw%3D%3D&numOfRows=14&pageNo=1&dataType=JSON&base_date=" +
             moment().format("YYYYMMDD") +
             "&base_time=" +
             moment().format("hhmm") +
@@ -210,7 +187,7 @@ export default {
 
               if (self.info.response["body"].items.item[i].category === "SKY") {
                 self.SKY = self.info.response["body"].items.item[i].fcstValue;
-                console.log(self.SKY);
+                // console.log(this.SKY);
               }
 
               if (self.info.response["body"].items.item[i].category === "T3H") {
@@ -235,12 +212,12 @@ export default {
               }
             }
           });
-          // wgs좌표-> tm좌표 카카오톡 REST API
+          //wgs좌표-> tm좌표 카카오톡 REST API
           var url =
             "https://dapi.kakao.com/v2/local/geo/transcoord.json?x=" +
-            yn +
+            self.yn +
             "&y=" +
-            xn +
+            self.xn +
             "&input_coord=WGS84&output_coord=TM";
           var appKey = "e210e19417b24807d3716f4e5a0bf4a9";
           var config = {
@@ -268,8 +245,8 @@ export default {
             "http://openapi.airkorea.or.kr/openapi/services/rest/MsrstnInfoInqireSvc/getNearbyMsrstnList?tmX=" +
             self.tm_x +
             "&tmY=" +
-            self.y +
-            "&ServiceKey=JRWTmtB5qI3WJcvA7HrFcBrSWgA6OKvW6HVK5YN1uTvodOeEo2noxhbEsS020kBYMYHDEBWqTFITnB0u88vtnw%3D%3D";
+            self.tm_y +
+            "&ServiceKey=JRWTmtB5qI3WJcvA7HrFcBrSWgA6OKvW16HVK5YNuTvodOeEo2noxhbEsS020kBYMYHDEBWqTFITnB0u88vtnw%3D%3D";
           axios
             .get(url3)
             .then(result => {
@@ -282,11 +259,11 @@ export default {
         });
       } else {
         console.log("위치값을 받지 못함.");
+        console.warn("Geolocation is not supported by your browser");
         return;
       }
     }
-  },
-  getLocation2: function() {}
+  }
 };
 </script>
 
@@ -329,7 +306,7 @@ img {
 }
 section {
   width: 100%;
-  padding-top: 110px;
+  padding-top: 100px;
 
   display: flex;
   flex-direction: row;
